@@ -8,7 +8,7 @@ class RewardRules
     grouped = transactions.group_by(&:month_key)
     monthly_points = grouped.transform_values { |txs| txs.sum { |t| @points_calculator.points_for(t) } }
 
-    now = Time.now
+    now = Time.current
     month_key = Timebox.month_key(now)
     eligible = []
 
