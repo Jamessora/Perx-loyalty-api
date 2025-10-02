@@ -16,3 +16,9 @@ A small Rails API that exposes authenticated endpoints for a loyalty platform.
 
 ## Authentication
 Server-to-server **Bearer API key**:
+
+## Prerequisites
+
+- Ruby 3.3
+- Bundler
+- SQLite
