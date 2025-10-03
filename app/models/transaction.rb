@@ -1,14 +1,16 @@
-class Transaction
-    attr_reader :user_id, :amount_cents, :currency, :occurred_at, :foreign
+# app/models/transaction.rb
+class Transaction < ApplicationRecord
+  belongs_to :user
 
-    def initialize(user_id:, amount_cents:, currency: "USD", occurred_at:, foreign: false)
-        @user_id = user_id
-        @amount_cents = Integer(amount_cents)
-        @currency = currency
-        @occurred_at = occurred_at
-        @foreign = !!foreign
-    end
+  validates :amount_cents, numericality: { only_integer: true, greater_than: 0 }
+  validates :occurred_at,  presence: true
+  validates :currency,     presence: true
 
-    def amount_usd = amount_cents / 100.0
-    def month_key  = occurred_at.strftime("%Y-%m")
+  def amount_usd
+    amount_cents.to_f / 100.0
+  end
+
+  def month_key
+    occurred_at.in_time_zone.strftime("%Y-%m")
+  end
 end

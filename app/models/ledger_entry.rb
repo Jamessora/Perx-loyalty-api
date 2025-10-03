@@ -1,7 +1,4 @@
-class LedgerEntry
-    attr_reader :user_id, :type, :key, :metadata, :created_at
-    def initialize(user_id:, type:, key:, metadata: {}, created_at: Time.now)
-        @user_id, @type, @key, @metadata, @created_at = user_id, type, key, metadata, created_at
-    end
+class LedgerEntry < ApplicationRecord
+  belongs_to :user
+  enum :entry_type, { points: "points", reward: "reward" }, prefix: :as
 end
-
