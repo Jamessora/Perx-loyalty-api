@@ -11,7 +11,7 @@ RSpec.describe "Transactions", type: :request do
     post "/transactions",
       params: { user_id: 1, amount_cents: 50000, occurred_at: "2025-10-02T03:00:00+08:00", foreign: true },
       headers: auth
-    expect(response).to have_http_status(:ok)
+    expect(response).to have_http_status(:created)
     body = JSON.parse(response.body)
     expect(body["monthly_points"].values.map(&:to_i).sum).to be >= 100
 

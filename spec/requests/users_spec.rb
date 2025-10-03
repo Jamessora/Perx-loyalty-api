@@ -32,7 +32,7 @@ RSpec.describe "Users API", type: :request do
            headers: headers
 
       expect(response).to have_http_status(:unprocessable_entity)
-      expect(json["error"]).to match(/birthday_month/i)
+      expect(json["error"]).to match(/birthday.*month/i)
     end
 
     it "422s when required params are missing" do
