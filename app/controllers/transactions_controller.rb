@@ -1,21 +1,46 @@
 class TransactionsController < ApplicationController
   def create
-    uid = Integer(params.require(:user_id))
-    return render(json: { error: "user not found" }, status: :not_found) unless USERS[uid]
+    user = User.find_by(id: params[:user_id])
+    return render json: { error: "user not found" }, status: :not_found unless user
 
-    tx = Transaction.new(
-      user_id: uid,
-      amount_cents: Integer(params.require(:amount_cents)),
-      occurred_at: Time.parse(params.require(:occurred_at)),
-      foreign: ActiveModel::Type::Boolean.new.cast(params[:foreign])
+    txn = user.transactions.build(
+      amount_cents: Integer(params[:amount_cents]),
+      currency:     params[:currency].presence || "USD",
+      occurred_at:  Time.iso8601(params[:occurred_at]),
+      foreign:      ActiveModel::Type::Boolean.new.cast(params[:foreign])
     )
-    TXS[uid] << tx
 
-    res = RULES.evaluate(user: USERS[uid], transactions: TXS[uid])
-    month_key = Timebox.month_key(Time.now)
-    ISSUER.record_points!(user_id: uid, month_key: month_key, points: res[:monthly_points][month_key].to_i)
-    res[:eligible_rewards].each { |r| ISSUER.issue_reward!(user_id: uid, reward: r[:reward], key: r[:key], reason: r[:reason]) }
+    unless txn.save
+      return render json: { error: txn.errors.full_messages.to_sentence }, status: :unprocessable_content
+    end
 
-    render json: { ok: true, monthly_points: res[:monthly_points], newly_eligible: res[:eligible_rewards].map { |r| r[:reward].code } }
+    # compute monthly points and rewards
+    calc   = PointsCalculator.new
+    issuer = RewardIssuer.new
+    rules  = RewardRules.new(points_calculator: calc)
+
+    # 1) recompute points for all user txns grouped by month
+    grouped = user.transactions.group_by(&:month_key)
+    monthly_points = grouped.transform_values do |txs|
+      txs.sum { |t| calc.points_for(t) }
+    end
+
+    # persist this month's points entry
+    month_key = txn.month_key
+    issuer.record_points!(user_id: user.id, month_key:, points: monthly_points[month_key])
+
+    # 2) apply reward rules and persist any new rewards
+    result = rules.evaluate(user:, transactions: user.transactions.to_a)
+    newly = []
+    result[:eligible_rewards].each do |r|
+      ok = issuer.issue_reward!(
+        user_id: user.id, reward: r[:reward], key: r[:key], reason: r[:reason], at: r[:at]
+      )
+      newly << r[:reward].code if ok
+    end
+
+    render json: { ok: true, monthly_points:, newly_eligible: newly }, status: :created
+  rescue ArgumentError
+    render json: { error: "occurred_at must be ISO8601 and amount_cents must be integer" }, status: :unprocessable_content
   end
 end

@@ -1,21 +1,16 @@
 class UsersController < ApplicationController
   def create
-    unless params.key?(:id) && params.key?(:birthday_month)
-      return render json: { error: "id and birthday_month are required" }, status: :unprocessable_entity
-    end
+    id    = params[:id]
+    bmon  = params[:birthday_month]
+    name  = params[:name].presence || "User#{id}"
 
-    id = Integer(params[:id]) rescue nil
-    birthday_month = Integer(params[:birthday_month]) rescue nil
-    unless id && birthday_month
-      return render json: { error: "id and birthday_month must be integers" }, status: :unprocessable_entity
-    end
+    return render json: { error: "id and birthday_month are required" }, status: :unprocessable_content unless id && bmon
 
-    unless (1..12).cover?(birthday_month)
-      return render json: { error: "birthday_month must be 1..12" }, status: :unprocessable_entity
+    user = User.new(id: id, name: name, birthday_month: bmon)
+    if user.save
+      render json: { ok: true, user_id: user.id }, status: :created
+    else
+      render json: { error: user.errors.full_messages.to_sentence }, status: :unprocessable_content
     end
-
-    name = params[:name].presence || "User#{id}"
-    USERS[id] = User.new(id:, name:, birthday_month: birthday_month)
-    render json: { ok: true, user_id: id }, status: :created
   end
 end
