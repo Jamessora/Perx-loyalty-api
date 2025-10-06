@@ -75,5 +75,19 @@ Then you would see the user's eligible rewards
 
 <img width="386" height="83" alt="image" src="https://github.com/user-attachments/assets/bb7f7869-8b61-4775-be8a-966af9ad888f" />
 
+## Testing with the seeds file
 
+Run the following:
 
+- `bundle exec rails c`
+
+- 
+
+```
+puts "Clients:", ApiClient.pluck(:id,:name,:token).map{_1.join(" | ")}
+puts "\nUsers:", User.pluck(:id,:name,:birthday_month).map{_1.join(" | ")}
+puts "\nTransactions (id,user,amount_cents,points,occurred_at,foreign):"
+pp Transaction.order(:user_id,:occurred_at).pluck(:id,:user_id,:amount_cents,:points,:occurred_at,:foreign)
+puts "\nLedger (id,user,type,key,metadata):"
+pp LedgerEntry.order(:user_id,:created_at).pluck(:id,:user_id,:entry_type,:key,:metadata)
+```
