@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_03_090225) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_06_052421) do
   create_table "api_clients", force: :cascade do |t|
     t.string "name", null: false
     t.string "token", null: false
@@ -39,6 +39,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_03_090225) do
     t.boolean "foreign", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "points", default: 0, null: false
+    t.index ["points"], name: "index_transactions_on_points"
     t.index ["user_id", "occurred_at"], name: "index_transactions_on_user_id_and_occurred_at"
     t.index ["user_id"], name: "index_transactions_on_user_id"
   end
