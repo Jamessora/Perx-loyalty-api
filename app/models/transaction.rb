@@ -1,4 +1,3 @@
-# app/models/transaction.rb
 class Transaction < ApplicationRecord
   belongs_to :user
 
@@ -6,11 +5,14 @@ class Transaction < ApplicationRecord
   validates :occurred_at,  presence: true
   validates :currency,     presence: true
 
-  def amount_usd
-    amount_cents.to_f / 100.0
-  end
+  before_validation :compute_points, on: :create
 
-  def month_key
-    occurred_at.in_time_zone.strftime("%Y-%m")
+  def amount_usd  = amount_cents.to_f / 100.0
+  def month_key   = occurred_at.in_time_zone.strftime("%Y-%m")
+
+  private
+
+  def compute_points
+    self.points = PointsCalculator.new.points_for(self)
   end
 end

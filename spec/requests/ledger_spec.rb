@@ -20,12 +20,12 @@ RSpec.describe "Ledger API (month accumulation)", type: :request do
     post "/transactions",
          params: { user_id: 9, amount_cents: 3_0000, occurred_at: last_month.iso8601, foreign: true },
          headers: headers
-    expect(response).to be_successful
+    expect(response).to have_http_status(:created)
 
     post "/transactions",
          params: { user_id: 9, amount_cents: 4_0000, occurred_at: this_month.iso8601, foreign: false }, # 40 pts
          headers: headers
-    expect(response).to be_successful
+    expect(response).to have_http_status(:created)
 
     get "/users/9/ledger", headers: headers
     rewards = json["ledger"].select { |e| e["type"] == "reward" }
