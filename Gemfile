@@ -47,4 +47,4 @@ end
 
 gem "rspec-rails", "~> 8.0"
 
-gem "sqlite3", "= 2.7.4"
+gem "sqlite3", "2.8.0"
